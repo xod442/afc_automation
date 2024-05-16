@@ -53,33 +53,38 @@ info = pod_info.pod_info()
 # Build the data center
 try:
 
-	login_session, auth_header = session.login(info['base_url'], info['username'], info['password'])
+    login_session, auth_header = session.login(info['base_url'], info['username'], info['password'])
+    session_dict = dict(s=login_session, url=info['base_url'])
 
-	print(auth_header)
-	session_dict = dict(s=login_session, url=info['base_url'])
+    x = 1
+    vrf_name = 'default'
+    name = 'BGP PEER'
+    ipv4_primary_address='172.16.10.7'
+    ipv4_primary_address_prefix_length = 31
+    if_type='routed'
+    description='my port'
+    vlan=2000
+    ipv4_secondary_address=[{"address":"172.16.10.5", "prefix_length":31}]
 
 
-    list = [vrf_name='default',switch_uuid = 'd8764677-1556-48fe-9a5d-9f610cec2a68',\
-    lag_uuid = 'b672d805-5418-42ca-9294-ddb46be2b429',name = 'BGP PEER',active_gateway_ip_address='',\
-    active_gateway_mac_address='',ipv4_primary_address='172.16.10.5',ipv4_primary_address_prefix_length = 31,\
-    if_type='routed',description='my port',vlan=3001,ipv4_secondary_address='']
 
+    print(type(ipv4_secondary_address))
 
-	response = vrfs.create_ip_interfaces(vrf_name,
-                                    switch_uuid,
-                                    lag_uuid
+    response = vrfs.create_layer3_ip_interfaces("3d7c324e-fbde-4ae7-b45c-043fc98117bc",
+                                    'e9438e9a-ef60-4343-93b7-f38851b9781a',
+                                    '784e328b-7028-404d-b1f4-acf3879361c3',
                                     auth_header,
-                                    name,
-                                    active_gateway_ip_address,
-                                    active_gateway_mac_address,
-                                    ipv4_primary_address
+                                    'BGP-PEER-INTERFACE',
+                                    ipv4_primary_address,
                                     ipv4_primary_address_prefix_length,
                                     if_type,
                                     description,
-                                    vlan,
                                     ipv4_secondary_address,
                                     **session_dict
                                     )
+
+
+
 
 except Exception as error:
 	print('Ran into exception: {}. Logging out...'.format(error))

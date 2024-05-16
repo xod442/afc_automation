@@ -23,15 +23,9 @@ __version__ = "0.1.1"
 __status__ = "Alpha"
 '''
 
+import urllib3
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-import urllib3
-import time
-#import requests
-#import os
-#import sys
-#import logging
-#import json
 import pyafc.session as session
 import pyafc.devices as devices
 import pyafc.fabric as fabric
@@ -40,28 +34,40 @@ import pyafc.vrfs as vrfs
 import pyafc.ntp as ntp
 import pyafc.dns as dns
 import pyafc.vsx as vsx
+import pyafc.ports as ports
 import pyafc.underlay as underlay
-import pod_info as pod_info
+import fab_info as fab_info
+
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 # Get data centrer variables
-info = pod_info.pod_info()
-
-# Build the data center
-try:
-
-	login_session, auth_header = session.login(info['base_url'], info['username'], info['password'])
-
-	print(auth_header)
-	session_dict = dict(s=login_session, url=info['base_url'])
+info = fab_info.fab_info()
 
 
+for i in info:
+    try:
+        login_session, auth_header = session.login(i['base_url'], i['username'], i['password'])
+        print(auth_header)
 
-except Exception as error:
-	print('Ran into exception: {}. Logging out...'.format(error))
+        session_dict = dict(s=login_session, url=i['base_url'])
 
 
-	session.logout(auth_header, **session_dict)
+        port_list = ports.get_all(auth_header, **session_dict)
+
+        for p in port_list:
+            if p['switch_uuid'] == 'e9438e9a-ef60-4343-93b7-f38851b9781a'and p['name'] == '1/1/10':
+                print(f"This is the port {p['uuid']} and this is the switch {p['switch_uuid']} and name {p['name']}")
+                print(f"And this is the lag_uuid assigned to the port {p['lag']['uuid']}")
+
+
+
+
+
+    except Exception as error:
+    	print('Ran into exception: {}. Logging out...'.format(error))
+
+
+    	session.logout(auth_header, **session_dict)

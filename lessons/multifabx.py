@@ -20,18 +20,19 @@ __author__ = "@netwookie"
 __credits__ = ["Rick Kauffman"]
 __license__ = "Apache2"
 __version__ = "0.1.1"
+__maintainer__ = "Rick Kauffman"
+__email__ = "rick@rickkauffman.com"
 __status__ = "Alpha"
 '''
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import urllib3
-import time
-#import requests
-#import os
-#import sys
-#import logging
-#import json
+import requests
+import os
+import sys
+import logging
+import json
 import pyafc.session as session
 import pyafc.devices as devices
 import pyafc.fabric as fabric
@@ -42,10 +43,11 @@ import pyafc.dns as dns
 import pyafc.vsx as vsx
 import pyafc.underlay as underlay
 import pod_info as pod_info
+import make_routed_interface as interface
+import time
 
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+logging.basicConfig(level=logging.INFO)
 
 # Get data centrer variables
 info = pod_info.pod_info()
@@ -58,28 +60,28 @@ try:
 	print(auth_header)
 	session_dict = dict(s=login_session, url=info['base_url'])
 
+	print("Create Fabric A")
+	response = fabric.create_fabric(info['fabric_name_a'], auth_header, info['timezone'], info['fab_description_a'], **session_dict)
+	print("tHIS IS THE FAB_response {0}".format(response))
 
-    list = [vrf_name='default',switch_uuid = 'd8764677-1556-48fe-9a5d-9f610cec2a68',\
-    lag_uuid = 'b672d805-5418-42ca-9294-ddb46be2b429',name = 'BGP PEER',active_gateway_ip_address='',\
-    active_gateway_mac_address='',ipv4_primary_address='172.16.10.5',ipv4_primary_address_prefix_length = 31,\
-    if_type='routed',description='my port',vlan=3001,ipv4_secondary_address='']
+    print("Create Fabric B")
+	response = fabric.create_fabric(info['fabric_name_b'], auth_header, info['timezone'], info['fab_description_a'], **session_dict)
+	print("tHIS IS THE FAB_response {0}".format(response))
 
 
-	response = vrfs.create_ip_interfaces(vrf_name,
-                                    switch_uuid,
-                                    lag_uuid
-                                    auth_header,
-                                    name,
-                                    active_gateway_ip_address,
-                                    active_gateway_mac_address,
-                                    ipv4_primary_address
-                                    ipv4_primary_address_prefix_length,
-                                    if_type,
-                                    description,
-                                    vlan,
-                                    ipv4_secondary_address,
-                                    **session_dict
-                                    )
+	print("Discovering Switches...")
+	devices.discover_switches(info['switch_list'], auth_header, info['switch_pass'], info['password'], **session_dict)
+
+	print('Waiting 60 seconds for switches to onboard to add to fabric')
+	time.sleep(30)
+
+	print("Getting fabrics")
+	fabrics = fabric.get_all_fabrics(auth_header, **session_dict)
+
+
+
+
+
 
 except Exception as error:
 	print('Ran into exception: {}. Logging out...'.format(error))
